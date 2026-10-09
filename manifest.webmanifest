@@ -1,0 +1,10 @@
+{
+  "name": "Spam Spotter",
+  "short_name": "Spam Spotter",
+  "description": "Check suspicious messages and links on your device.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#eef3ef",
+  "theme_color": "#10241f",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
