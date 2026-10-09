@@ -1,2 +1,2 @@
 # Spam-spotter
-Ok
+build code repositorie make it private
