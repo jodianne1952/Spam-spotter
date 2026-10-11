@@ -65,8 +65,8 @@ function analyzeMessage(text) {
   return { level, findings: [...new Set([...matched.map(x => x.why), ...linkNotes])], summary: level === "high" ? "Several warning signs are present. Treat this as suspicious." : level === "medium" ? "Some warning signs are present. Verify through a trusted channel." : "Few common warning signs were detected. The message could still be unsafe." };
 }
 document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
-  document.querySelectorAll(".tab").forEach(tab => { tab.classList.remove("active"); tab.setAttribute("aria-selected", "false"); });
-  button.classList.add("active"); button.setAttribute("aria-selected", "true");
+  document.querySelectorAll(".tab").forEach(tab => { tab.classList.remove("active"); tab.setAttribute("aria-pressed", "false"); });
+  button.classList.add("active"); button.setAttribute("aria-pressed", "true");
   ["message", "link", "report"].forEach(name => { $(`${name}-panel`).hidden = name !== button.dataset.tab; });
 }));
 $("message-input").addEventListener("input", e => { $("message-count").textContent = `${e.target.value.length.toLocaleString()} / 10,000`; });
