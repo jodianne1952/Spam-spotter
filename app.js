@@ -90,6 +90,6 @@ $("save-report").addEventListener("click", () => {
   try { localStorage.setItem("spamSpotterReports", JSON.stringify(rows.slice(-100))); $("report-feedback").textContent = "Saved on this device. It has not been sent anywhere."; $("report-note").value = ""; updateReportCount(); }
   catch { $("report-feedback").textContent = "Could not save in this browser. Check device storage settings."; }
 });
-$("clear-data").addEventListener("click", () => { localStorage.removeItem("spamSpotterReports"); $("report-feedback").textContent = "Reports cleared from this device."; updateReportCount(); });
+$("clear-data").addEventListener("click", () => { try { localStorage.removeItem("spamSpotterReports"); $("report-feedback").textContent = "Reports cleared from this device."; updateReportCount(); } catch { $("report-feedback").textContent = "Could not clear reports in this browser. Check device storage settings."; } });
 updateReportCount();
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(() => {});
