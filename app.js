@@ -43,12 +43,17 @@ function suspiciousUrl(raw) {
   if (host.includes("@") || url.username || url.password) notes.push("It contains unusual sign-in information in the address.");
   if (host.split(".").length > 4) notes.push("It has an unusually deep subdomain structure.");
   if (/(login|verify|secure|account|update|support|claim|payment)/i.test(host) && !knownBrands.includes(host)) notes.push("The domain uses words often added to impersonation links; check the exact registered domain.");
-  if (knownBrands.some(brand => host !== brand && host.endsWith(`.${brand}`))) notes.push("A familiar brand appears only as a subdomain; the registered domain may belong to someone else.");
+  if (knownBrands.some(brand => {
+    const brandName = brand.split(".")[0];
+    const isBrandDomain = host === brand || host.endsWith("." + brand);
+    const usesBrandNameElsewhere = host.split(".").some(label => label === brandName || label.startsWith(brandName + "-"));
+    return !isBrandDomain && usesBrandNameElsewhere;
+  })) notes.push("A familiar organization name appears in a different domain. Check the registered domain carefully.");
   if (!notes.length) notes.push("No obvious address warning signs were found. This does not prove the site is genuine.");
   return notes;
 }
 function resultMarkup(level, title, summary, findings, next) {
-  return `<span class="risk ${level}">${level.toUpperCase()} RISK</span><h3>${title}</h3><p>${summary}</p>${findings.length ? `<ul>${findings.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>` : ""}<p><strong>Safer next step:</strong> ${escapeHtml(next)}</p>`;
+  return `<span class="result-label ${level}">${({ high: "Several warning signs", medium: "Some warning signs", low: "Few common signs found" }[level] || "Review carefully")}</span><h3>${title}</h3><p>${summary}</p>${findings.length ? `<ul>${findings.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>` : ""}<p><strong>Safer next step:</strong> ${escapeHtml(next)}</p>`;
 }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function analyzeMessage(text) {
@@ -68,7 +73,7 @@ $("message-input").addEventListener("input", e => { $("message-count").textConte
 $("analyze-message").addEventListener("click", () => {
   const result = analyzeMessage($("message-input").value); const box = $("message-result"); box.hidden = false;
   if (!result) { box.innerHTML = "<p>Paste a message first. Remove personal details before checking.</p>"; return; }
-  const title = result.level === "high" ? "This message looks suspicious" : result.level === "medium" ? "Pause and verify" : "Few common warning signs found";
+  const title = result.level === "high" ? "This message looks suspicious" : result.level === "medium" ? "Pause and verify" : "No common warning signs found";
   const next = result.level === "high" ? "Do not click, reply, or pay. Contact the organization using a trusted number or website." : "Do not use contact details in the message. Look up the organization independently.";
   box.innerHTML = resultMarkup(result.level, title, result.summary, result.findings, next);
 });
@@ -76,7 +81,7 @@ $("analyze-url").addEventListener("click", () => {
   const input = $("url-input").value.trim(); const box = $("url-result"); box.hidden = false;
   if (!input) { box.innerHTML = "<p>Enter a link first. This check will not open it.</p>"; return; }
   const notes = suspiciousUrl(input); const level = notes.some(x => !x.startsWith("No obvious")) ? "medium" : "low";
-  box.innerHTML = resultMarkup(level, level === "medium" ? "Review this address carefully" : "No obvious warning signs found", "This check looks at the address only; it does not visit or verify the website.", notes, "Open a trusted app or type the known official address yourself.");
+  box.innerHTML = resultMarkup(level, level === "medium" ? "Review this address carefully" : "No common warning signs found", "This check looks at the address only; it does not visit or verify the website.", notes, "Open a trusted app or type the known official address yourself.");
 });
 function readReports() { try { return JSON.parse(localStorage.getItem("spamSpotterReports") || "[]"); } catch { return []; } }
 function updateReportCount() { $("report-total").textContent = `${readReports().length} report${readReports().length === 1 ? "" : "s"} saved on this device.`; }
