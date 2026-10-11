@@ -1,4 +1,4 @@
-const CACHE = "spam-spotter-v2";
+const CACHE = "spam-spotter-v3";
 const FILES = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 self.addEventListener("install", event => event.waitUntil(Promise.all([caches.open(CACHE).then(cache => cache.addAll(FILES)), self.skipWaiting()])));
 self.addEventListener("activate", event => event.waitUntil(Promise.all([caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))), self.clients.claim()])));
