@@ -1,4 +1,19 @@
 const $ = (id) => document.getElementById(id);
+const textSizeOptions = [...document.querySelectorAll("[data-text-size-option]")];
+function applyTextSize(size) {
+  const allowed = ["standard", "large", "extra-large"];
+  const selected = allowed.includes(size) ? size : "standard";
+  document.documentElement.dataset.textSize = selected;
+  textSizeOptions.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.textSizeOption === selected)));
+}
+let savedTextSize = "standard";
+try { savedTextSize = localStorage.getItem("spamSpotterTextSize") || "standard"; } catch {}
+applyTextSize(savedTextSize);
+textSizeOptions.forEach(button => button.addEventListener("click", () => {
+  const size = button.dataset.textSizeOption;
+  applyTextSize(size);
+  try { localStorage.setItem("spamSpotterTextSize", size); } catch {}
+}));
 const patterns = [
   { re: /\b(act now|immediately|urgent|within 24 hours|final notice|account (?:will be|has been) (?:closed|suspended|locked))\b/i, points: 2, why: "Pressures you to act quickly." },
   { re: /\b(verify|confirm|unlock|restore|validate)\b.{0,45}\b(account|identity|password|payment|card|bank|ssn|social security)\b/i, points: 3, why: "Asks you to verify sensitive information." },
