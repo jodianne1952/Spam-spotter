@@ -28,9 +28,9 @@
       <button type="button" class="size-option" data-text-size-option="large" aria-pressed="false">Large</button>
       <button type="button" class="size-option" data-text-size-option="extra-large" aria-pressed="false">Extra large</button>
     </section>
-    <nav class="tabs" aria-label="Spam Spotter tools">
-      <button class="tab active" data-tab="message" aria-selected="true">Check a message</button>
-      <button class="tab" data-tab="link" aria-selected="false">Check a link</button>
+    <nav class="tabs" role="group" aria-label="Spam Spotter tools">
+      <button class="tab active" data-tab="message" aria-pressed="true">Check a message</button>
+      <button class="tab" data-tab="link" aria-pressed="false">Check a link</button>
       <button class="tab" data-tab="report" aria-selected="false">Report a scam</button>
     </nav>
     <section class="panel" id="message-panel">
@@ -57,7 +57,15 @@
       <button id="save-report" class="primary">Save report on this device</button>
       <p id="report-feedback" class="feedback" aria-live="polite"></p><p id="report-total" class="report-total"></p>
     </section>
-    <section class="disclaimer"><strong>Use judgment.</strong> A low-risk result is not proof a message is genuine. Contact an organization using a phone number or website you already trust.</section>
+    <details class="privacy-details">
+      <summary>Privacy and accuracy</summary>
+      <div class="privacy-copy">
+        <p>Spam Spotter checks text and links in this browser. It does not send the message or link you enter to a server.</p>
+        <p>Your text-size choice and scam report notes are saved in this browser on this device. Reports stay here until you clear them or clear this browser's site data. Do not include names, account numbers, passwords, or other private details.</p>
+        <p>This prototype uses a short list of common warning signs. It does not check a live scam database and cannot prove that a message or website is safe. When unsure, do not click, reply, or pay. Contact the organization using a number or website you already trust.</p>
+      </div>
+    </details>
+    <section class="disclaimer"><strong>When in doubt, pause.</strong> A result cannot confirm that a message or website is genuine. Contact the organization using a phone number on your card or an official address you type yourself.</section>
     <footer>Spam Spotter · Test version · <button id="clear-data" class="text-button">Clear reports from this device</button></footer>
   </main>
   <script src="app.js" defer></script>
