@@ -7,6 +7,12 @@ on:
     paths:
       - 'android-message-checker/**'
       - '.github/workflows/message-checker-android.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'android-message-checker/**'
+      - '.github/workflows/message-checker-android.yml'
   workflow_dispatch:
 
 permissions:
@@ -21,6 +27,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.1.0'
@@ -28,12 +35,14 @@ jobs:
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platforms;android-36" "build-tools;36.0.0"
-      - name: Build debug APK
+      - name: Build APK and App Bundle
         working-directory: android-message-checker
-        run: gradle :app:assembleDebug
+        run: gradle :app:assembleDebug :app:bundleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: spam-spotter-message-checker-debug
-          path: android-message-checker/app/build/outputs/apk/debug/app-debug.apk
+          name: spam-spotter-message-checker-test-build
+          path: |
+            android-message-checker/app/build/outputs/apk/debug/app-debug.apk
+            android-message-checker/app/build/outputs/bundle/debug/app-debug.aab
           if-no-files-found: error
           retention-days: 14
