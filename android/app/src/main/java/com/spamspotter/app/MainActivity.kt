@@ -21,19 +21,17 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(36, 36, 36, 36)
         }
-        fun label(text: String, size: Float = 18f) = TextView(this).apply {
-            this.text = text; textSize = size
+        fun label(value: String, size: Float = 18f): TextView = TextView(this).apply {
+            text = value
+            textSize = size
             setPadding(0, 12, 0, 12)
             content.addView(this)
         }
-        fun button(text: String, action: () -> Unit) {
-            content.addView(Button(this).apply {
-                this.text = text
-                setOnClickListener { action() }
-            })
+        fun button(value: String, action: () -> Unit) {
+            content.addView(Button(this).apply { text = value; setOnClickListener { action() } })
         }
         label("Spam Spotter", 30f)
-        label("Private Android test build. Only numbers you explicitly block are rejected. Trusted numbers are always allowed.")
+        label("Private testing version. Trusted numbers ring normally. Only numbers you block are rejected. Quiet hours silence other calls without rejecting them.")
         status = label("Checking screening status...")
         button("Enable call screening") {
             val roles = getSystemService(RoleManager::class.java)
@@ -42,36 +40,35 @@ class MainActivity : Activity() {
             else status.text = "Call screening is unavailable on this device."
         }
         val number = EditText(this).apply {
-            hint = "Enter phone number, including area code"
+            hint = "Phone number with area code"
+            contentDescription = "Phone number to trust or block"
             inputType = InputType.TYPE_CLASS_PHONE
             textSize = 20f
             content.addView(this)
         }
         lists = label("")
         fun refresh() {
-            lists.text = "Trusted: ${policy.trustedNumbers().sorted().joinToString().ifEmpty { "None" }}\n" +
-                "Blocked: ${policy.blockedNumbers().sorted().joinToString().ifEmpty { "None" }}"
+            lists.text = "Trusted numbers: ${policy.trustedNumbers().sorted().joinToString().ifEmpty { "None" }}\n" +
+                "Blocked numbers: ${policy.blockedNumbers().sorted().joinToString().ifEmpty { "None" }}\n" +
+                "Quiet hours (10 PM–7 AM): ${if (policy.quietHoursEnabled()) "ON" else "OFF"}"
         }
-        fun apply(action: (String) -> Boolean) {
-            val ok = action(number.text.toString())
-            status.text = if (ok) "Saved locally." else "Enter a valid number (at least 7 digits)."
+        fun add(action: (String) -> Boolean) {
+            status.text = if (action(number.text.toString())) "Number saved on this device."
+                else "Enter a valid number including area code (10–15 digits)."
             refresh()
         }
-        button("Add trusted number") { apply(policy::addTrusted) }
-        button("Block this number") { apply(policy::addBlocked) }
-        button("Remove trusted number") {
-            policy.removeTrusted(number.text.toString()); refresh()
+        button("Trust this number") { add(policy::addTrusted) }
+        button("Block this number") { add(policy::addBlocked) }
+        button("Remove from trusted") { policy.removeTrusted(number.text.toString()); refresh() }
+        button("Remove from blocked") { policy.removeBlocked(number.text.toString()); refresh() }
+        label("Quiet hours: untrusted calls are silenced, not blocked. Your phone can still show missed calls.")
+        button("Turn quiet hours ON (10 PM–7 AM)") {
+            policy.setQuietHours(true); refresh()
         }
-        button("Unblock this number") {
-            policy.removeBlocked(number.text.toString()); refresh()
+        button("Turn quiet hours OFF") {
+            policy.setQuietHours(false); refresh()
         }
-        label("Quiet hours (settings only; automatic quiet-hours blocking is not enabled).")
-        button("Enable 10 PM–7 AM quiet-hours setting") {
-            policy.setQuietHours(true); status.text = "Quiet-hours preference saved; not yet used to block calls."
-        }
-        button("Disable quiet-hours setting") {
-            policy.setQuietHours(false); status.text = "Quiet-hours preference disabled."
-        }
+        label("Privacy: Lists stay on this phone. No SMS, contacts, call history, or numbers are uploaded.")
         refresh()
         setContentView(ScrollView(this).apply { addView(content) })
     }
@@ -81,7 +78,7 @@ class MainActivity : Activity() {
         if (::status.isInitialized) {
             val roles = getSystemService(RoleManager::class.java)
             status.text = if (roles.isRoleHeld(RoleManager.ROLE_CALL_SCREENING))
-                "Call screening enabled." else "Call screening not enabled."
+                "Call screening is enabled." else "Call screening is not enabled."
         }
     }
 }
