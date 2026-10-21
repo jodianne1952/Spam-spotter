@@ -4,41 +4,28 @@ import android.content.Context
 import android.telephony.PhoneNumberUtils
 import java.time.LocalTime
 
-/**
- * Local, conservative rules. Only explicitly blocked numbers are rejected.
- * A trusted number always wins over the blocked list.
- */
-class ScreeningPolicy(private val context: Context) {
+/** Privacy-first, on-device screening policy. No contact or call-log permissions. */
+class ScreeningPolicy(context: Context) {
     private val prefs = context.getSharedPreferences("screening", Context.MODE_PRIVATE)
-
-    private fun normalized(raw: String): String =
-        PhoneNumberUtils.normalizeNumber(raw).orEmpty()
-
-    private fun set(key: String): Set<String> = prefs.getStringSet(key, emptySet()) ?: emptySet()
+    private fun normalized(raw: String): String = PhoneNumberUtils.normalizeNumber(raw).orEmpty()
+    private fun numbers(key: String): Set<String> = prefs.getStringSet(key, emptySet())?.toSet() ?: emptySet()
+    private fun valid(raw: String) = normalized(raw).count { it.isDigit() } in 10..15
 
     fun addTrusted(raw: String): Boolean = add("trusted", raw)
     fun addBlocked(raw: String): Boolean = add("blocked", raw)
+    private fun add(key: String, raw: String): Boolean {
+        if (!valid(raw)) return false
+        return prefs.edit().putStringSet(key, numbers(key) + normalized(raw)).commit()
+    }
     fun removeTrusted(raw: String) = remove("trusted", raw)
     fun removeBlocked(raw: String) = remove("blocked", raw)
-    fun trustedNumbers(): Set<String> = set("trusted").toSet()
-    fun blockedNumbers(): Set<String> = set("blocked").toSet()
-
-    private fun add(key: String, raw: String): Boolean {
-        val number = normalized(raw)
-        if (number.length < 7) return false
-        return prefs.edit().putStringSet(key, set(key) + number).commit()
-    }
-
     private fun remove(key: String, raw: String) {
-        prefs.edit().putStringSet(key, set(key) - normalized(raw)).apply()
+        prefs.edit().putStringSet(key, numbers(key) - normalized(raw)).apply()
     }
-
-    fun isBlocked(raw: String?): Boolean {
-        if (raw.isNullOrBlank()) return false
-        val number = normalized(raw)
-        if (number.isBlank() || number in set("trusted")) return false
-        return number in set("blocked")
-    }
+    fun trustedNumbers() = numbers("trusted")
+    fun blockedNumbers() = numbers("blocked")
+    fun isTrusted(raw: String?): Boolean = raw != null && normalized(raw) in numbers("trusted")
+    fun isBlocked(raw: String?): Boolean = raw != null && !isTrusted(raw) && normalized(raw) in numbers("blocked")
 
     fun quietHoursActive(now: LocalTime = LocalTime.now()): Boolean {
         if (!prefs.getBoolean("quiet_enabled", false)) return false
@@ -53,4 +40,5 @@ class ScreeningPolicy(private val context: Context) {
         prefs.edit().putBoolean("quiet_enabled", enabled)
             .putInt("quiet_start", start).putInt("quiet_end", end).apply()
     }
+    fun quietHoursEnabled() = prefs.getBoolean("quiet_enabled", false)
 }
