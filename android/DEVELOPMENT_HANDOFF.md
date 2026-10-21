@@ -1,7 +1,7 @@
 # Android development handoff
 
 ## Current scope
-Native Android 10+ test application using the Android CallScreeningService role. Exact manually blocked numbers are rejected; trusted numbers override the blocklist; 10 PM–7 AM quiet hours silence untrusted calls without rejecting them. Numbers and preferences remain in on-device SharedPreferences.
+Native Android 10+ test application using the Android CallScreeningService role. Exact manually blocked numbers are rejected; trusted numbers override the blocklist; 10 PM-7 AM quiet hours silence untrusted calls without rejecting them. Numbers and preferences remain in on-device SharedPreferences. The app also keeps an on-device history of the last 50 screened calls (number, time, and action taken), viewable and clearable in the app.
 
 ## Build verification (required)
 1. Open GitHub Actions > Android debug APK; confirm the workflow completes successfully.
@@ -19,8 +19,9 @@ Native Android 10+ test application using the Android CallScreeningService role.
 - No spam intelligence, automatic business classification, SMS interception, or cloud sync.
 - Exact-number matching only. International formatting and country-code variants require more work.
 - No repeat-caller bypass yet.
+- Call history covers only calls handled while the app holds the call-screening role.
 - Call screening availability and behavior vary by Android device and carrier.
-- Quiet hours use the phone's local time; the current fixed interval is 10 PM–7 AM.
+- Quiet hours use the phone's local time; the current fixed interval is 10 PM-7 AM.
 - This is not a security-certified or Play Store release build.
 - No successful compilation, device testing, or APK download is asserted by this document.
 
