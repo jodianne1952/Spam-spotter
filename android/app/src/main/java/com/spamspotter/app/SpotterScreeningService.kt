@@ -2,23 +2,21 @@ package com.spamspotter.app
 
 import android.telecom.Call
 import android.telecom.CallScreeningService
-import android.util.Log
 
 /**
- * Initial safe baseline: responds promptly to screening requests, but never blocks calls.
- * A future policy engine must be explicitly enabled by the user before blocking.
+ * Only exact, user-entered blocklist matches are blocked.
+ * Unknown and private numbers pass through. No number is uploaded.
  */
 class SpotterScreeningService : CallScreeningService() {
     override fun onScreenCall(callDetails: Call.Details) {
-        Log.i("SpamSpotter", "Call screening event received")
-        respondToCall(
-            callDetails,
-            CallResponse.Builder()
-                .setDisallowCall(false)
-                .setRejectCall(false)
-                .setSkipCallLog(false)
-                .setSkipNotification(false)
-                .build()
-        )
+        val number = callDetails.handle?.schemeSpecificPart
+        val blocked = callDetails.callDirection == Call.Details.DIRECTION_INCOMING &&
+            ScreeningPolicy(this).isBlocked(number)
+        respondToCall(callDetails, CallResponse.Builder()
+            .setDisallowCall(blocked)
+            .setRejectCall(blocked)
+            .setSkipCallLog(false)
+            .setSkipNotification(false)
+            .build())
     }
 }
